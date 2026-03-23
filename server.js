@@ -2,47 +2,30 @@ require("dotenv").config();
 
 const express = require("express");
 const app = express();
-
 const jwt = require("jsonwebtoken");
 
 app.use(express.json());
 
 const posts = [
-  {
-    kwame: "i like basketball",
-    jamal: "i like tennis",
-  },
+  { username: "kwame", post: "i like basketball" },
+  { username: "jamal", post: "i like tennis" },
 ];
 
-const PORT = process.env.PORT;
-
-app.get("/posts", checkToken, (req, res) => {
+app.get("/posts", authenticateToken, (req, res) => {
   res.json(posts.filter((post) => post.username === req.user.name));
 });
 
-app.post("/login", (req, res) => {
-  //authenticate user
-
-  const username = req.body.username;
-  const user = { name: username };
-
-  const accessToken = jwt.sign(user, process.env.SECRET_TOKEN);
-  res.json({ accessToken: accessToken });
-});
-
-function checkToken(req, res, next) {
+function authenticateToken(req, res, next) {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
-
   if (token == null) return res.sendStatus(401);
 
-  jwt.verify(token, process.env.SECRET_TOKEN, (err, user) => {
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+    console.log(err);
     if (err) return res.sendStatus(403);
     req.user = user;
     next();
   });
 }
 
-app.listen(PORT, () => {
-  console.log(`serving on port:${PORT}`);
-});
+app.listen(3000);
